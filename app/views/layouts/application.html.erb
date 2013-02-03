@@ -13,7 +13,7 @@
           Signed in as <%= link_to '@' + current_user.name, '//twitter.com/' + current_user.name, :target => '_blank' %>!
           <%= link_to "Sign out", signout_path %>
         <% else %>
-          <%= link_to "Sign in with Twitter", "/auth/twitter" %>
+          <%= link_to "Sign in with Twitter", "/auth/twitter?x_auth_access_type=read" %>
         <% end %>
       </div>
       <% flash.each do |name, msg| %>
