@@ -4,6 +4,7 @@ class User < ActiveRecord::Base
   def self.from_omniauth(auth)
     if auth.provider == "twitter"
       user = where(:twitter_uid => auth.uid).first || create_from_omniauth(auth)
+      user.name = auth["info"]["nickname"]
       user.oauth_token = auth["credentials"]["token"]
       user.oauth_secret = auth["credentials"]["secret"]
       user.save!
