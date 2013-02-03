@@ -1,5 +1,4 @@
 class User < ActiveRecord::Base
-  attr_accessible :name, :oauth_secret, :oauth_token, :twitter_uid
   self.primary_key = 'twitter_uid'
 
   def self.from_omniauth(auth)
