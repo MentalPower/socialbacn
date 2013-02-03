@@ -21,7 +21,7 @@ class User < ActiveRecord::Base
   end
 
   def twitter
-    if twitter_uid != nil
+    if twitter_uid != nil && oauth_token != nil && oauth_secret != nil
       @twitter ||= Twitter::Client.new(oauth_token: oauth_token, oauth_token_secret: oauth_secret)
     end
   end
