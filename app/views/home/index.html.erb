@@ -1,8 +1,7 @@
 <pre>
 <% if current_user %>
   <% if !current_user.twitter.user_timeline.blank? %>
-    <% for item in current_user.twitter.home_timeline %>
-      <%= item.created_at %>
+    <% for item in current_user.twitter.home_timeline(:count => 200) %>
       @<%= item.user.screen_name -%>: <%=item.text %>
     <% end %>
   <% else %>
