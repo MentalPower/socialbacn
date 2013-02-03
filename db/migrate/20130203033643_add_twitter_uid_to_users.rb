@@ -5,7 +5,7 @@ class AddTwitterUidToUsers < ActiveRecord::Migration
   end
 
   def down
-    add_column :users, :provider => {:default => 'twitter'}
+    add_column :users, :provider, :string, {:default => 'twitter'}
     rename_column :users, :twitter_uid, :uid
   end
 end
