@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  user: 1
+  length: 1
+  numURLs: 1
+  numMedia: 1
+  numHashtags: 1
+  numMentions: 1
+  hasGeo: false
+  isReply: false
+  isRetweet: false
+
+two:
+  user: 1
+  length: 1
+  numURLs: 1
+  numMedia: 1
+  numHashtags: 1
+  numMentions: 1
+  hasGeo: false
+  isReply: false
+  isRetweet: false

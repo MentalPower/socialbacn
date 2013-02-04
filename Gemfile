@@ -39,3 +39,4 @@ gem 'jquery-rails'
 
 gem 'omniauth-twitter'
 gem 'twitter'
+gem 'foreigner'
