@@ -36,10 +36,22 @@ class User < ActiveRecord::Base
   end
 
   def update_tweets
+    update_home_timeline
+    update_user_timeline
+  end
+
+  def update_home_timeline
     if twitter
       for item in twitter.home_timeline(:count => 200)
         tweet = Tweet.where(:id => item.id).first || Tweet.create_from_twitter(item)
-        #raise item.to_yaml + tweet.to_yaml
+      end
+    end
+  end
+
+  def update_user_timeline
+    if twitter
+      for item in twitter.user_timeline(:count => 200)
+        tweet = Tweet.where(:id => item.id).first || Tweet.create_from_twitter(item)
       end
     end
   end
