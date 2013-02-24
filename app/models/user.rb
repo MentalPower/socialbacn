@@ -2,13 +2,6 @@ class User < ActiveRecord::Base
   self.primary_key = 'twitter_uid'
   has_many :tweets
 
-  def self.create_from_twitter(twitter_user)
-    create! do |user|
-      user.twitter_uid = twitter_user.id
-      user.name = twitter_user.screen_name
-    end
-  end
-
   def self.from_omniauth(auth)
     if auth.provider == "twitter"
       user = where(:twitter_uid => auth.uid).first || create_from_omniauth(auth)
@@ -26,6 +19,13 @@ class User < ActiveRecord::Base
       user.name = auth["info"]["nickname"]
       user.oauth_token = auth["credentials"]["token"]
       user.oauth_secret = auth["credentials"]["secret"]
+    end
+  end
+
+  def self.create_from_twitter(twitter_user)
+    create! do |user|
+      user.twitter_uid = twitter_user.id
+      user.name = twitter_user.screen_name
     end
   end
 
