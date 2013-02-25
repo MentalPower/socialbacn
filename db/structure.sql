@@ -28,9 +28,13 @@ CREATE TABLE `users` (
   `oauth_secret` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
+  `newest_home_tweet` bigint(20) unsigned DEFAULT NULL,
+  `newest_user_tweet` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`twitter_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 INSERT INTO schema_migrations (version) VALUES ('20130203054243');
 
 INSERT INTO schema_migrations (version) VALUES ('20130203065810');
+
+INSERT INTO schema_migrations (version) VALUES ('20130224064448');
