@@ -1,5 +1,10 @@
 <pre>
-<% if current_user %>
-    <% current_user.update_tweets() %>
-<% end %>
+<% if current_user -%>
+    <% current_user.update_tweets() -%>
+    <% if !current_user.tweets.blank? -%>
+        <% for tweet in current_user.tweets.includes(:user).order("id desc") -%>
+            <%= link_to "Tweet", "https://twitter.com/"+tweet.user.name+"/status/"+tweet.id.to_s, :target => "_blank" %>
+        <% end -%>
+    <% end -%>
+<% end -%>
 </pre>
