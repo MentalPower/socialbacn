@@ -42,16 +42,92 @@ class User < ActiveRecord::Base
 
   def update_home_timeline
     if twitter
-      for item in twitter.home_timeline(:count => 200)
-        tweet = Tweet.where(:id => item.id).first || Tweet.create_from_twitter(item)
+      #Get the most recent tweetID
+      since_id = self.newest_home_tweet || 1
+      puts("update_home_init", since_id)
+
+      #Then get all the tweets since that ID
+      home_timeline = twitter.home_timeline(:count => 200, :since_id => since_id)
+      num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(home_timeline)
+      puts("update_home", num_tweets, min_tweet, max_tweet)
+
+      #Save this out since it may be needed below
+      global_max_tweet = max_tweet
+
+      #If we've never seen this user before, get all the tweets we can.
+      if since_id == 1
+        loop do
+          home_timeline = twitter.home_timeline(:count => 200, :max_id => min_tweet)
+          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(home_timeline)
+          puts("new_home", num_tweets, min_tweet, max_tweet)
+          #raise
+          break if num_tweets <= 1
+        end
+
+        #Save our position for the next run
+        self.newest_home_tweet = global_max_tweet
+        self.save!
+
+      #If this is a refresh, and we get more than one tweet, get any tweets that we haven't seen yet
+      elsif num_tweets > 1
+        loop do
+          home_timeline = twitter.home_timeline(:count => 200, :since_id => max_tweet)
+          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(home_timeline)
+          puts("refresh_home", num_tweets, min_tweet, max_tweet)
+          #raise
+          break if num_tweets <= 1
+        end
+
+      #Otherwise, just update our position
+      else
+        self.newest_home_tweet = [since_id, max_tweet || 1].max
+        self.save!
       end
     end
   end
 
   def update_user_timeline
     if twitter
-      for item in twitter.user_timeline(:count => 200)
-        tweet = Tweet.where(:id => item.id).first || Tweet.create_from_twitter(item)
+      #Get the most recent tweetID
+      since_id = self.newest_user_tweet || 1
+      puts("update_user_init", since_id)
+
+      #Then get all the tweets since that ID
+      user_timeline = twitter.user_timeline(:count => 200, :since_id => since_id)
+      num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(user_timeline)
+      puts("update_user", num_tweets, min_tweet, max_tweet)
+
+      #Save this out since it may be needed below
+      global_max_tweet = max_tweet
+
+      #If we've never seen this user before, get all the tweets we can.
+      if since_id == 1
+        loop do
+          user_timeline = twitter.user_timeline(:count => 200, :max_id => min_tweet)
+          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(user_timeline)
+          puts("new_user", num_tweets, min_tweet, max_tweet)
+          #raise
+          break if num_tweets <= 1
+        end
+
+        #Save our position for the next run
+        self.newest_user_tweet = global_max_tweet
+        self.save!
+
+      #If this is a refresh, and we get more than one tweet, get any tweets that we haven't seen yet
+      elsif num_tweets > 1
+        loop do
+          user_timeline = twitter.user_timeline(:count => 200, :since_id => max_tweet)
+          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(user_timeline)
+          puts("refresh_user", num_tweets, min_tweet, max_tweet)
+          #raise
+          break if num_tweets <= 1
+        end
+
+      #Otherwise, just update our position
+      else
+        self.newest_user_tweet = [since_id, max_tweet || 1].max
+        self.save!
       end
     end
   end
