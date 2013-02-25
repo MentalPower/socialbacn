@@ -18,4 +18,22 @@ class Tweet < ActiveRecord::Base
       tweet.created_at = twitter_tweet.created_at
     end
   end
+
+  def self.bulk_insert(tweets)
+    if tweets.blank?
+      return 0,0
+    else
+      max_tweet = nil
+      min_tweet = nil
+      for item in tweets
+        max_tweet = item.id if max_tweet.nil?
+        min_tweet = item.id if min_tweet.nil?
+
+        max_tweet = [max_tweet, item.id].max
+        min_tweet = [min_tweet, item.id].min
+        tweet = Tweet.where(:id => item.id).first || Tweet.create_from_twitter(item)
+      end
+      return tweets.length, min_tweet, max_tweet
+    end
+  end
 end
