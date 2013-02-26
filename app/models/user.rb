@@ -96,9 +96,9 @@ class User < ActiveRecord::Base
     rescue Twitter::Error::TooManyRequests => error
       puts(
         timeline + "_TooManyRequests",
-        "x-rate-limit-limit: " + error.rate_limit.limit.to_s,
-        "x-rate-limit-remaining: " + error.rate_limit.remaining.to_s,
-        "x-rate-limit-reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
+        "limit: " + error.rate_limit.limit.to_s,
+        "remaining: " + error.rate_limit.remaining.to_s,
+        "reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
       )
     end
   end
