@@ -21,7 +21,7 @@ class Tweet < ActiveRecord::Base
 
   def self.bulk_insert(tweets)
     if tweets.blank?
-      return 0,0
+      return 0,nil,nil
     else
       max_tweet = nil
       min_tweet = nil
