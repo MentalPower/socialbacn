@@ -39,8 +39,13 @@ class User < ActiveRecord::Base
 
   def update_tweets
     if twitter
-      update_timeline("home_timeline")
-      update_timeline("user_timeline")
+      num_tweets, min_tweet, max_tweet = update_timeline("home_timeline")
+      self.newest_home_tweet = max_tweet
+      self.save!
+
+      num_tweets, min_tweet, max_tweet = update_timeline("user_timeline")
+      self.newest_user_tweet = max_tweet
+      self.save!
     end
   end
 
@@ -56,7 +61,9 @@ class User < ActiveRecord::Base
       puts(timeline + "_first", num_tweets, min_tweet, max_tweet)
 
       #Save this out since scoping rules make it needed below
-      global_max_tweet = [since_id, max_tweet || 1].max
+      global_max_tweet = [since_id, max_tweet].compact.max
+      global_min_tweet = [global_max_tweet, min_tweet].compact.min
+      global_num_tweets = num_tweets || 0
 
       #If we've never seen this user before, get all the tweets we can.
       if since_id == 1
@@ -64,15 +71,12 @@ class User < ActiveRecord::Base
           tweets = twitter.send(timeline, :count => 200, :max_id => min_tweet)
           num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_new", num_tweets, min_tweet, max_tweet)
-          global_max_tweet = [max_tweet || 1, global_max_tweet || 1].max
-          puts(global_max_tweet)
+          global_max_tweet = [max_tweet, global_max_tweet].compact.max
+          global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
+          global_num_tweets += num_tweets
           #raise
           break if num_tweets <= 1
         end
-
-        #Save our position for the next run
-        self.newest_home_tweet = global_max_tweet
-        self.save!
 
       #If this is a refresh, and we get more than one tweet, get any tweets that we haven't seen yet
       elsif num_tweets > 1
@@ -80,17 +84,17 @@ class User < ActiveRecord::Base
           tweets = twitter.send(timeline, :count => 200, :since_id => max_tweet)
           num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_refresh", num_tweets, min_tweet, max_tweet)
-          global_max_tweet = [max_tweet || 1, global_max_tweet || 1].max
-          puts(global_max_tweet)
+          global_max_tweet = [max_tweet, global_max_tweet].compact.max
+          global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
+          global_num_tweets += num_tweets
           #raise
           break if num_tweets <= 1
         end
       end
 
-      #Update our position at the end
-      puts(timeline + "_update", global_max_tweet)
-      self.newest_home_tweet = global_max_tweet
-      self.save!
+      #Return our global counts
+      puts(timeline + "_final", global_num_tweets, global_min_tweet, global_max_tweet)
+      return global_num_tweets, global_min_tweet, global_max_tweet
 
     #Very common to run into rate limits unintentionally, lets make sure the app doesn't die
     rescue Twitter::Error::TooManyRequests => error
