@@ -37,7 +37,7 @@ class User < ActiveRecord::Base
     end
   end
 
-  def update_tweets
+  def update_twitter
     if twitter
       num_tweets, min_tweet, max_tweet = update_timeline("home_timeline")
       self.newest_home_tweet = max_tweet

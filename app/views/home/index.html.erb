@@ -1,6 +1,6 @@
 <pre>
 <% if current_user -%>
-    <% current_user.update_tweets() -%>
+    <% current_user.update_twitter() -%>
     <% if !current_user.tweets.blank? -%>
         <% for tweet in Tweet.includes(:user).order("id desc").limit(50) -%>
             <%=
