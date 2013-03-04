@@ -52,6 +52,7 @@ class User < ActiveRecord::Base
   def update_timeline(since_id = 1, timeline)
     begin
       #Get the most recent tweetID
+      since_id = since_id || 1
       puts(timeline + "_init", since_id)
 
       #Then get all the tweets since that ID
