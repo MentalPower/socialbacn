@@ -67,7 +67,7 @@ class User < ActiveRecord::Base
       #If we've never seen this user before, get all the tweets we can.
       if since_id == 1
         loop do
-          tweets = twitter.send(timeline, :count => 200, :max_id => min_tweet)
+          tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
           num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_new", num_tweets, min_tweet, max_tweet)
           global_max_tweet = [max_tweet, global_max_tweet].compact.max
@@ -79,10 +79,23 @@ class User < ActiveRecord::Base
 
       #If this is a refresh, and we get more than one tweet, get any tweets that we haven't seen yet
       elsif num_tweets > 1
+        #Scan forwards
         loop do
-          tweets = twitter.send(timeline, :count => 200, :since_id => max_tweet)
+          tweets = twitter.send(timeline, :count => 200, :since_id => global_max_tweet)
           num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
-          puts(timeline + "_refresh", num_tweets, min_tweet, max_tweet)
+          puts(timeline + "_refresh_max", num_tweets, min_tweet, max_tweet)
+          global_max_tweet = [max_tweet, global_max_tweet].compact.max
+          global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
+          global_num_tweets += num_tweets
+          #raise
+          break if num_tweets <= 1
+        end
+
+        #And also scan backwards
+        loop do
+          tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
+          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
+          puts(timeline + "_refresh_min", num_tweets, min_tweet, max_tweet)
           global_max_tweet = [max_tweet, global_max_tweet].compact.max
           global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
           global_num_tweets += num_tweets
