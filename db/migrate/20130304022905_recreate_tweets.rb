@@ -14,7 +14,7 @@ class RecreateTweets < ActiveRecord::Migration
       t.boolean :isRetweet, :null => false
       t.timestamps
     end
-    add_index :tweets, :user_id
-    add_foreign_key :tweets, :users, dependent: :delete, primary_key: 'twitter_uid'
+
+    add_foreign_key :tweets, :users, dependent: :delete, column: 'user_id', primary_key: 'twitter_uid'
   end
 end

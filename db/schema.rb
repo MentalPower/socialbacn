@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(:version => 20130304022905) do
     t.datetime "updated_at",               :null => false
   end
 
-  add_index "tweets", ["user_id"], :name => "index_tweets_on_user_id"
+  add_index "tweets", ["user_id"], :name => "tweets_user_id_fk"
 
   create_table "users", :force => true do |t|
     t.integer  "twitter_uid",       :limit => 8

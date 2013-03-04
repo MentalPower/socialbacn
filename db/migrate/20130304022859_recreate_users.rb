@@ -9,6 +9,7 @@ class RecreateUsers < ActiveRecord::Migration
       t.integer :newest_user_tweet, :limit => 8
       t.timestamps
     end
+
     add_index :users, :twitter_uid, :unique => true
   end
 end
