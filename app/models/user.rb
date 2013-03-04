@@ -39,20 +39,19 @@ class User < ActiveRecord::Base
 
   def update_twitter
     if twitter
-      num_tweets, min_tweet, max_tweet = update_timeline("home_timeline")
+      num_tweets, min_tweet, max_tweet = update_timeline(self.newest_home_tweet, "home_timeline")
       self.newest_home_tweet = max_tweet
       self.save!
 
-      num_tweets, min_tweet, max_tweet = update_timeline("user_timeline")
+      num_tweets, min_tweet, max_tweet = update_timeline(self.newest_user_tweet, "user_timeline")
       self.newest_user_tweet = max_tweet
       self.save!
     end
   end
 
-  def update_timeline(timeline)
+  def update_timeline(since_id = 1, timeline)
     begin
       #Get the most recent tweetID
-      since_id = self.newest_home_tweet || 1
       puts(timeline + "_init", since_id)
 
       #Then get all the tweets since that ID
