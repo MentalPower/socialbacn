@@ -39,11 +39,11 @@ class User < ActiveRecord::Base
 
   def update_twitter
     if twitter
-      num_tweets, min_tweet, max_tweet = update_timeline(self.newest_home_tweet, "home_timeline")
+      num_new_tweets, num_old_tweets, min_tweet, max_tweet = update_timeline(self.newest_home_tweet, "home_timeline")
       self.newest_home_tweet = max_tweet
       self.save!
 
-      num_tweets, min_tweet, max_tweet = update_timeline(self.newest_user_tweet, "user_timeline")
+      num_new_tweets, num_old_tweets, min_tweet, max_tweet = update_timeline(self.newest_user_tweet, "user_timeline")
       self.newest_user_tweet = max_tweet
       self.save!
     end
@@ -56,57 +56,61 @@ class User < ActiveRecord::Base
 
       #Then get all the tweets since that ID
       tweets = twitter.send(timeline, :count => 200, :since_id => since_id)
-      num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
-      puts(timeline + "_first", num_tweets, min_tweet, max_tweet)
+      num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
+      puts(timeline + "_first", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
 
       #Save this out since scoping rules make it needed below
       global_max_tweet = [since_id, max_tweet].compact.max
       global_min_tweet = [global_max_tweet, min_tweet].compact.min
-      global_num_tweets = num_tweets || 0
+      global_new_tweets = num_new_tweets || 0
+      global_old_tweets = num_old_tweets || 0
 
       #If we've never seen this user before, get all the tweets we can.
       if since_id == 1
         loop do
           tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
-          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
-          puts(timeline + "_new", num_tweets, min_tweet, max_tweet)
+          num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
+          puts(timeline + "_new", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
           global_max_tweet = [max_tweet, global_max_tweet].compact.max
           global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
-          global_num_tweets += num_tweets
+          global_new_tweets += num_new_tweets
+          global_old_tweets += num_old_tweets
           #raise
-          break if num_tweets <= 1
+          break if num_new_tweets <= 1
         end
 
       #If this is a refresh, and we get more than one tweet, get any tweets that we haven't seen yet
-      elsif num_tweets > 1
+      elsif num_new_tweets > 1
         #Scan forwards
         loop do
           tweets = twitter.send(timeline, :count => 200, :since_id => global_max_tweet)
-          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
-          puts(timeline + "_refresh_max", num_tweets, min_tweet, max_tweet)
+          num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
+          puts(timeline + "_refresh_max", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
           global_max_tweet = [max_tweet, global_max_tweet].compact.max
           global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
-          global_num_tweets += num_tweets
+          global_new_tweets += num_new_tweets
+          global_old_tweets += num_old_tweets
           #raise
-          break if num_tweets <= 1
+          break if num_new_tweets <= 1
         end
 
         #And also scan backwards
         loop do
           tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
-          num_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
-          puts(timeline + "_refresh_min", num_tweets, min_tweet, max_tweet)
+          num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
+          puts(timeline + "_refresh_min", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
           global_max_tweet = [max_tweet, global_max_tweet].compact.max
           global_min_tweet = [min_tweet, global_min_tweet, global_max_tweet].compact.min
-          global_num_tweets += num_tweets
+          global_new_tweets += num_new_tweets
+          global_old_tweets += num_old_tweets
           #raise
-          break if num_tweets <= 1
+          break if num_new_tweets <= 1
         end
       end
 
       #Return our global counts
-      puts(timeline + "_final", global_num_tweets, global_min_tweet, global_max_tweet)
-      return global_num_tweets, global_min_tweet, global_max_tweet
+      puts(timeline + "_final", global_new_tweets, global_old_tweets, global_min_tweet, global_max_tweet)
+      return global_new_tweets, global_old_tweets, global_min_tweet, global_max_tweet
 
     #Very common to run into rate limits unintentionally, lets make sure the app doesn't die
     rescue Twitter::Error::TooManyRequests => error
