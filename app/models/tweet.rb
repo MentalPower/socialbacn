@@ -27,14 +27,14 @@ class Tweet < ActiveRecord::Base
       min_tweet = nil
       num_new_tweets = 0
       num_old_tweets = 0
-      for item in tweets
-        max_tweet = item.id if max_tweet.nil?
-        min_tweet = item.id if min_tweet.nil?
+      for tweet in tweets
+        max_tweet = tweet.id if max_tweet.nil?
+        min_tweet = tweet.id if min_tweet.nil?
 
-        max_tweet = [max_tweet, item.id].max
-        min_tweet = [min_tweet, item.id].min
-        if !(Tweet.where(:id => item.id).first)
-          Tweet.create_from_twitter(item)
+        max_tweet = [max_tweet, tweet.id].max
+        min_tweet = [min_tweet, tweet.id].min
+        if !(Tweet.where(:id => tweet.id).first)
+          Tweet.create_from_twitter(tweet)
           num_new_tweets += 1
         else
           num_old_tweets += 1
