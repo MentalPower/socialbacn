@@ -69,6 +69,7 @@ class User < ActiveRecord::Base
       #If we've never seen this user before, get all the tweets we can.
       if since_id == 1
         loop do
+          puts(timeline + "_new_init", global_min_tweet)
           tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
           num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_new", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
@@ -84,6 +85,7 @@ class User < ActiveRecord::Base
       elsif num_new_tweets > 1
         #Scan forwards
         loop do
+          puts(timeline + "_refresh_max_init", global_max_tweet)
           tweets = twitter.send(timeline, :count => 200, :since_id => global_max_tweet)
           num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_refresh_max", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
@@ -97,6 +99,7 @@ class User < ActiveRecord::Base
 
         #And also scan backwards
         loop do
+          puts(timeline + "_refresh_min_init", global_min_tweet)
           tweets = twitter.send(timeline, :count => 200, :max_id => global_min_tweet)
           num_new_tweets, num_old_tweets, min_tweet, max_tweet = Tweet.bulk_insert(tweets)
           puts(timeline + "_refresh_min", num_new_tweets, num_old_tweets, min_tweet, max_tweet)
