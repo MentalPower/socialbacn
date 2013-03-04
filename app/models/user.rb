@@ -3,6 +3,11 @@ class User < ActiveRecord::Base
   include ActionView::Helpers::DateHelper
   has_many :tweets, :primary_key => :twitter_uid
 
+  has_many :friendships
+  has_many :friends, :through => :friendships
+
+  has_many :inverse_friendships, :class_name => "Friendship", :foreign_key => "friend_id"
+  has_many :inverse_friends, :through => :inverse_friendships, :source => :user
 
   def self.from_omniauth(auth)
     if auth.provider == "twitter"
@@ -31,6 +36,10 @@ class User < ActiveRecord::Base
     end
   end
 
+  def self.find_or_create_from_twitter(twitter_user)
+    User.where(:twitter_uid => twitter_user.id).first || User.create_from_twitter(twitter_user)
+  end
+
   def twitter
     if twitter_uid != nil && oauth_token != nil && oauth_secret != nil
       @twitter ||= Twitter::Client.new(oauth_token: oauth_token, oauth_token_secret: oauth_secret)
@@ -39,6 +48,8 @@ class User < ActiveRecord::Base
 
   def update_twitter
     if twitter
+      update_friendships()
+
       num_new_tweets, num_old_tweets, min_tweet, max_tweet = update_timeline(self.newest_home_tweet, "home_timeline")
       self.newest_home_tweet = max_tweet
       self.save!
@@ -124,6 +135,55 @@ class User < ActiveRecord::Base
         "remaining: " + error.rate_limit.remaining.to_s,
         "reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
       )
+    end
+  end
+
+  def update_friendships
+    begin
+      cursor = -1
+      loop do
+        puts("update_friendships_cursor", cursor)
+        friend_ids = twitter.friend_ids(:cursor => cursor)
+        start_id = 0
+        while start_id + 100 <= friend_ids.ids.length
+          puts("update_friendships_users", start_id, friend_ids.ids.length)
+          friends = twitter.users(friend_ids.ids.slice(start_id, 100))
+          for twitter_friend in friends
+            friend = User.find_or_create_from_twitter(twitter_friend)
+            friendship = Friendship.find_or_create_from_twitter(self, friend)
+          end
+          start_id += 100
+        end
+        cursor = friend_ids.next
+        break if friend_ids.last?
+      end
+
+    #Very common to run into rate limits unintentionally, lets make sure the app doesn't die
+    rescue Twitter::Error::TooManyRequests => error
+      puts(
+        "update_friendships_TooManyRequests",
+        "limit: " + error.rate_limit.limit.to_s,
+        "remaining: " + error.rate_limit.remaining.to_s,
+        "reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
+      )
+    end
+  end
+
+  def self.bulk_insert(users)
+    if users.blank?
+      return 0,0
+    else
+      num_new_users = 0
+      num_old_users = 0
+      for user in users
+        if !(User.where(:twitter_uid => user.id).first)
+          User.create_from_twitter(user)
+          num_new_users += 1
+        else
+          num_old_users += 1
+        end
+      end
+      return num_new_users, num_old_users
     end
   end
 end
