@@ -48,7 +48,11 @@ class User < ActiveRecord::Base
 
   def update_twitter
     if twitter
-      update_friendships()
+      if !self.updated_twitter_friends or self.updated_twitter_friends < 1.day.ago
+        update_friendships()
+        self.updated_twitter_friends = Time.now
+        self.save!
+      end
 
       num_new_tweets, num_old_tweets, min_tweet, max_tweet = update_timeline(self.newest_home_tweet, "home_timeline")
       self.newest_home_tweet = max_tweet

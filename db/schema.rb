@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130304033833) do
+ActiveRecord::Schema.define(:version => 20130304165926) do
 
   create_table "friendships", :force => true do |t|
     t.string   "network"
@@ -42,14 +42,15 @@ ActiveRecord::Schema.define(:version => 20130304033833) do
   add_index "tweets", ["user_id"], :name => "tweets_user_id_fk"
 
   create_table "users", :force => true do |t|
-    t.integer  "twitter_uid",       :limit => 8
+    t.integer  "twitter_uid",             :limit => 8
     t.string   "name"
     t.string   "oauth_token"
     t.string   "oauth_secret"
-    t.integer  "newest_home_tweet", :limit => 8
-    t.integer  "newest_user_tweet", :limit => 8
-    t.datetime "created_at",                     :null => false
-    t.datetime "updated_at",                     :null => false
+    t.integer  "newest_home_tweet",       :limit => 8
+    t.integer  "newest_user_tweet",       :limit => 8
+    t.datetime "updated_twitter_friends"
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
   end
 
   add_index "users", ["twitter_uid"], :name => "index_users_on_twitter_uid", :unique => true
