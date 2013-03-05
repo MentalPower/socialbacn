@@ -1,8 +1,8 @@
 <pre>
 <% if current_user -%>
     <% current_user.update_twitter() -%>
-    <% if !current_user.tweets.blank? -%>
-        <% for tweet in Tweet.includes(:user).order("id desc").limit(50) -%>
+    <% if !Tweet.blank? -%>
+        <% for tweet in Tweet.joins(:user).where(:user_id => current_user.friends.select('twitter_uid')).order("id desc").limit(50) -%>
             <%=
                 link_to(
                     tweet.user.name + " (" + tweet.created_at.to_s + ")",
