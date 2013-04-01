@@ -1,17 +1,18 @@
-<pre>
+
 <% if current_user -%>
+    <%- #Must move this to a backend process -%>
     <% current_user.update_twitter() -%>
-    <% if !Tweet.blank? -%>
-        <% for tweet in Tweet.joins(:user).where(:user_id => current_user.friends.select('twitter_uid')).order("id desc").limit(50) -%>
-            <%=
-                link_to(
-                    tweet.user.name + " (" + tweet.created_at.to_s + ")",
-                    "https://twitter.com/" + tweet.user.name + "/status/" +
-                    tweet.id.to_s,
-                    :target => "_blank"
-                )
-            %>
-        <% end -%>
-    <% end -%>
 <% end -%>
-</pre>
+
+<h1> SocialBacn </h1>
+<h2> <%= link_to("@" + current_user.name, "https://twitter.com/" + current_user.name, :target => "_blank", :class => "noUnderline") %> </h2>
+
+<h3> Home Timeline </h3>
+<% for tweet in Tweet.includes(:user).home_timeline(current_user).where(:created_at => 6.hours.ago..Time.now).limit(50) -%>
+    <%= link_to_twitter(tweet) %></br>
+<% end -%>
+
+<h3> User Timeline </h3>
+<% for tweet in Tweet.includes(:user).user_timeline(current_user).limit(50) -%>
+    <%= link_to_twitter(tweet) %></br>
+<% end -%>
