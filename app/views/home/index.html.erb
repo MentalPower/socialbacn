@@ -7,12 +7,54 @@
 <h1> SocialBacn </h1>
 <h2> <%= link_to("@" + current_user.name, "https://twitter.com/" + current_user.name, :target => "_blank", :class => "noUnderline") %> </h2>
 
-<h3> Home Timeline </h3>
-<% for tweet in Tweet.includes(:user).home_timeline(current_user).where(:created_at => 6.hours.ago..Time.now).limit(50) -%>
-    <%= link_to_twitter(tweet) %></br>
-<% end -%>
 
-<h3> User Timeline </h3>
-<% for tweet in Tweet.includes(:user).user_timeline(current_user).limit(50) -%>
-    <%= link_to_twitter(tweet) %></br>
-<% end -%>
+<h3> Top 10 </h3>
+<% top_twitterers = Tweet.home_timeline(current_user).includes(:user).where(:created_at => 2.weeks.ago..Time.now).order('count_all DESC').limit(10).count(:all, :group => 'tweets.user_id') -%>
+
+<div id="chart_div" style='float:left;'></div>
+<script type="text/javascript">
+  // Load the Visualization API and the piechart package.
+  google.load('visualization', '1.0', {'packages':['corechart']});
+
+  // Set a callback to run when the Google Visualization API is loaded.
+  google.setOnLoadCallback(drawChart);
+
+  // Callback that creates and populates a data table,
+  // instantiates the pie chart, passes in the data and
+  // draws it.
+  function drawChart() {
+
+    // Create the data table.
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Topping');
+    data.addColumn('number', 'Slices');
+    data.addRows(
+        <%=raw top_twitterers.map { |id,count| [User.find_by_id(id).name.to_s,count] }.to_json %>
+    );
+
+    // Set chart options
+    var options = {
+        'width':700,
+        'height':400
+    };
+
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+  }
+</script>
+<div style='clear:both;'></div>
+
+<div style='float:left;'>
+    <h3> Home Timeline </h3>
+    <% for tweet in Tweet.includes(:user).home_timeline_sorted(current_user).where(:created_at => 2.hours.ago..Time.now).limit(50) -%>
+        <%= link_to_twitter_tweet(tweet) %></br>
+    <% end -%>
+</div>
+
+<div style='float:left;'>
+    <h3> User Timeline </h3>
+    <% for twitter_tweet in Tweet.includes(:user).user_timeline_sorted(current_user).limit(50) -%>
+        <%= link_to_twitter_tweet(twitter_tweet) %></br>
+    <% end -%>
+</div>
