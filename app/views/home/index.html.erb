@@ -12,6 +12,7 @@
 <% top_twitterers = Tweet.home_timeline(current_user).includes(:user).where(:created_at => 2.weeks.ago..Time.now).order('count_all DESC').limit(10).count(:all, :group => 'tweets.user_id') -%>
 
 <div id="chart_div" style='float:left;'></div>
+<div id="chart2_div" style='float:left;'></div>
 <script type="text/javascript">
   // Load the Visualization API and the piechart package.
   google.load('visualization', '1.0', {'packages':['corechart']});
@@ -26,8 +27,8 @@
 
     // Create the data table.
     var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Topping');
-    data.addColumn('number', 'Slices');
+    data.addColumn('string', 'User');
+    data.addColumn('number', 'Tweets');
     data.addRows(
         <%=raw top_twitterers.map { |id,count| [User.find_by_id(id).name.to_s,count] }.to_json %>
     );
@@ -41,6 +42,10 @@
 
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.BarChart(document.getElementById('chart2_div'));
     chart.draw(data, options);
   }
 </script>
