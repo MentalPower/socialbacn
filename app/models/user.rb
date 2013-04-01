@@ -144,6 +144,9 @@ class User < ActiveRecord::Base
 
   def update_friendships
     begin
+      #You are implicitly your own friend
+      Friendship.find_or_create_from_twitter(self, self)
+
       cursor = -1
       loop do
         puts("update_friendships_cursor", cursor)
