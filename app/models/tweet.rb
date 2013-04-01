@@ -2,6 +2,9 @@ class Tweet < ActiveRecord::Base
   attr_accessible :hasGeo, :isReply, :isRetweet, :length, :numHashtags, :numMedia, :numMentions, :numURLs, :user
   belongs_to :user
 
+  scope :home_timeline, lambda { |current_user| where("`friendships`.`user_id` = ?", current_user).joins('LEFT JOIN `friendships` ON `friendships`.`friend_id` = `tweets`.`user_id`').order("`tweets`.`id` DESC") }
+  scope :user_timeline, lambda { |current_user| where(:user_id => current_user).order("`tweets`.`id` DESC") }
+
   def self.create_from_twitter(twitter_tweet)
     user = User.where(:twitter_uid => twitter_tweet.user.id).first || User.create_from_twitter(twitter_tweet.user)
     create! do |tweet|
