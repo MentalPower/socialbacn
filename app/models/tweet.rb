@@ -1,12 +1,12 @@
 class Tweet < ActiveRecord::Base
   attr_accessible :hasGeo, :isReply, :isRetweet, :length, :numHashtags, :numMedia, :numMentions, :numURLs, :user
-  belongs_to :user, :primary_key => :twitter_uid
+  belongs_to :user
 
   def self.create_from_twitter(twitter_tweet)
     user = User.where(:twitter_uid => twitter_tweet.user.id).first || User.create_from_twitter(twitter_tweet.user)
     create! do |tweet|
       tweet.id = twitter_tweet.id
-      tweet.user_id = user.twitter_uid
+      tweet.user_id = user.id
       tweet.length = twitter_tweet.text.length
       tweet.numURLs = twitter_tweet.urls.length
       tweet.numHashtags = twitter_tweet.hashtags.length

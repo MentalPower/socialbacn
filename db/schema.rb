@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130304165926) do
+ActiveRecord::Schema.define(:version => 20130331224714) do
 
   create_table "friendships", :force => true do |t|
     t.string   "network"
@@ -26,7 +26,7 @@ ActiveRecord::Schema.define(:version => 20130304165926) do
   add_index "friendships", ["user_id"], :name => "friendships_user_id_fk"
 
   create_table "tweets", :force => true do |t|
-    t.integer  "user_id",     :limit => 8
+    t.integer  "user_id",     :limit => 8, :null => false
     t.integer  "length",                   :null => false
     t.integer  "numURLs",                  :null => false
     t.integer  "numMedia",                 :null => false
@@ -58,6 +58,6 @@ ActiveRecord::Schema.define(:version => 20130304165926) do
   add_foreign_key "friendships", "users", :name => "friendships_friend_id_fk", :column => "friend_id", :dependent => :delete
   add_foreign_key "friendships", "users", :name => "friendships_user_id_fk", :dependent => :delete
 
-  add_foreign_key "tweets", "users", :name => "tweets_user_id_fk", :primary_key => "twitter_uid", :dependent => :delete
+  add_foreign_key "tweets", "users", :name => "tweets_user_id_fk"
 
 end

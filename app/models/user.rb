@@ -1,7 +1,7 @@
 class User < ActiveRecord::Base
   #We only use this for debugging, but we can't put it any closer to where its used.
   include ActionView::Helpers::DateHelper
-  has_many :tweets, :primary_key => :twitter_uid
+  has_many :tweets
 
   has_many :friendships
   has_many :friends, :through => :friendships
