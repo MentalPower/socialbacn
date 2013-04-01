@@ -144,6 +144,9 @@ class User < ActiveRecord::Base
 
   def update_friendships
     begin
+      #Kill all friendships for this user
+      self.friends = []
+
       #You are implicitly your own friend
       Friendship.find_or_create_from_twitter(self, self)
 
