@@ -139,6 +139,12 @@ class User < ActiveRecord::Base
         "remaining: " + error.rate_limit.remaining.to_s,
         "reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
       )
+    rescue Twitter::Error::Unauthorized => error
+      #TODO: Bubble this up to the user so that she can login again!
+      puts(
+        timeline + "_Unauthorized"
+      )
+      current_user = nil
     end
   end
 
@@ -176,6 +182,12 @@ class User < ActiveRecord::Base
         "remaining: " + error.rate_limit.remaining.to_s,
         "reset: " + time_ago_in_words(error.rate_limit.reset_at, true) + " (" + error.rate_limit.reset_at.to_s + ")"
       )
+    rescue Twitter::Error::Unauthorized => error
+      #TODO: Bubble this up to the user so that she can login again!
+      puts(
+        "update_friendships_Unauthorized"
+      )
+      current_user = nil
     end
   end
 
