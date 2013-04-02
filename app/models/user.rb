@@ -150,11 +150,15 @@ class User < ActiveRecord::Base
 
   def update_friendships
     begin
-      #Kill all friendships for this user
-      self.friends = []
+      #Record all old friendships
+      self.reload
+      old_friendships = self.friendships.map(&:id)
+
+      #Our array for holding all our current friendships
+      current_friendships = []
 
       #You are implicitly your own friend
-      Friendship.find_or_create_from_twitter(self, self)
+      current_friendships << Friendship.find_or_create_from_twitter(self, self).id
 
       cursor = -1
       loop do
@@ -166,12 +170,17 @@ class User < ActiveRecord::Base
           friends = twitter.users(friend_ids.ids.slice(start_id, 100))
           for twitter_friend in friends
             friend = User.find_or_create_from_twitter(twitter_friend)
-            friendship = Friendship.find_or_create_from_twitter(self, friend)
+            current_friendships << Friendship.find_or_create_from_twitter(self, friend).id
           end
           start_id += 100
         end
         cursor = friend_ids.next
         break if friend_ids.last?
+      end
+
+      #Deactivate any stale friendships
+      for friendship in Friendship.find_all_by_id(old_friendships - current_friendships)
+        friendship.deactivate
       end
 
     #Very common to run into rate limits unintentionally, lets make sure the app doesn't die

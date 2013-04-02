@@ -11,17 +11,19 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130331224714) do
+ActiveRecord::Schema.define(:version => 20130402025114) do
 
   create_table "friendships", :force => true do |t|
     t.string   "network"
     t.integer  "user_id",    :limit => 8
     t.integer  "friend_id",  :limit => 8
-    t.datetime "created_at",              :null => false
-    t.datetime "updated_at",              :null => false
+    t.boolean  "active",                  :default => true
+    t.datetime "created_at",                                :null => false
+    t.datetime "updated_at",                                :null => false
   end
 
   add_index "friendships", ["friend_id"], :name => "friendships_friend_id_fk"
+  add_index "friendships", ["network", "user_id", "active", "friend_id"], :name => "index_on_network_user_id_active_friend_id"
   add_index "friendships", ["network", "user_id", "friend_id"], :name => "index_friendships_on_network_and_user_id_and_friend_id", :unique => true
   add_index "friendships", ["user_id"], :name => "friendships_user_id_fk"
 
